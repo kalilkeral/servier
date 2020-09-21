@@ -1,0 +1,19 @@
+---
+# vars file for linux_satellite_init
+# Initialisation des vars Sat
+
+activation_key:
+    "TST": "isi-test-activekey"
+    "DEV": "isi-test-activekey"
+    "VAL": "isi-test-activekey"
+    "PRD": "isi-prod-activekey"
+
+puppet_environment:
+    "TST": "isi_stable"
+    "DEV": "isi_stable"
+    "VAL": "isi_stable"
+    "PRD": "isi_stable"
+
+capsule_satellite:
+    "LAN": "emsl0156.fr1.grs.net"
+    "DMZ": "emsl0155.fr1.grs.net"

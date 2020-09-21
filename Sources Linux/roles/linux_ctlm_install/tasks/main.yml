@@ -1,0 +1,102 @@
+---
+# tasks file for linux_ctlm_install
+
+- name: Add Host to Cache Inventory
+  add_host:
+    hostname: '{{ vm_name }}'
+    ansible_host: '{{ vm_ip }}'
+    groups: just_created
+  no_log: true
+
+- name: Check ControlM is not installed
+  stat: 
+    path: '{{ install_directory }}/installed-versions.txt'
+  register: stat_result
+  delegate_to: '{{ vm_name }}'
+
+#- name: Var initialization
+#  include_vars:
+#    file: '{{ vm_env }}.yml'
+
+###########################################################
+#        Initialize ControlM Config  Variables            #
+###########################################################
+
+- name: Init Controlm Config File
+  set_fact:
+      ctrlm_config_file: '{{ ctlm_file[(vm_env | string)] }}'
+
+###########################################################
+#        Initialize ControlM Config  Variables            #
+###########################################################
+
+- name: Init Controlm Server Repository
+  set_fact:
+        controlm_repo_server: '{{ reposerver[(vm_subnet | string)] }}'
+
+- name: Install and configure CTLM
+  block:
+  - ping:
+
+  - name: Adding controlm group
+    group:
+      name: ctrlm
+      gid: 5516
+      state: present
+
+  - name: Adding controlm user
+    user:
+      name: ctrlm
+      comment: ControlM User
+      home: '{{ install_directory }}'
+      uid: 5516
+      group: ctrlm
+      shell: /bin/bash
+      state: present
+
+  - name: Get Controlm Package
+    get_url: 
+      url: "http://{{ controlm_repo_server }}.fr1.grs.net/repo/controlm/controlm_9.0.0/DRKAI.9.0.00_Linux-x86_64.tar.z"
+      dest: '{{ install_directory }}'
+      checksum: sha256:9cb6ca79aee27afca6b90d568671ca305acdc74d587976d5a30cde38d32c0cbb
+
+  - name: Unzip ControlM sources
+    unarchive: 
+      src: '{{ install_directory }}/DRKAI.9.0.00_Linux-x86_64.tar.z'
+      dest: '{{ install_directory }}'
+      remote_src: yes
+
+  - name: Upload controlm install file
+    copy: 
+      src: ./files/{{ ctrlm_config_file }}
+      dest: '{{ install_directory }}'
+
+  - name: Execute install of Controlm
+    command: '{{ install_directory }}/setup.sh -silent "{{ ctrlm_config_file }}"'
+    args:
+      chdir: '{{ install_directory }}'
+    register: ctlm_install
+
+  - name: Delete Temp Directory File
+    file:
+      path: '{{ install_directory }}/DRKAI.9.0.00_Linux-x86_64.tar.z'
+      state: absent
+
+  - name: Upload ControlM agent systemd file
+    copy:
+      src: ./files/ctmag.service
+      dest: /etc/systemd/system/
+      mode: 0644
+
+  - name: Create and enable systemd service for controlm
+    systemd:
+      name: ctmag
+      daemon_reload: yes
+      enabled: yes
+      state: restarted
+
+
+  delegate_to: '{{ vm_name }}'
+  when: 
+    - vm_install_ctrlM == 'Yes'
+    - not stat_result.stat.exists

@@ -1,0 +1,13 @@
+<AutomatedInstallation langpack="eng">
+    <target.product>Control-M/Agent 9.0.00</target.product>
+    <agent.parameters>
+        <entry key="field.Authorized.Controlm.Server.Host" value="emsw0654.fr1.grs.net|emsw0657.fr1.grs.net"/>
+        <entry key="ctm_agent.Tracker.Event.Port" value="7035"/>
+        <entry key="field.Agent.To.Server.Port.Number" value="8205"/>
+        <entry key="ctm_agent.Tcp_ip.Timeout" value="60"/>
+        <entry key="field.Server.To.Agent.Port.Number" value="8206"/>
+        <entry key="Ignore.Disabling.Agent.Failure" value="false"/>
+        <entry key="ctm_agent.Force.Upgrade" value="false"/>
+        <entry key="field.Primary.Controlm.Server.Host" value="emsw0654"/>
+    </agent.parameters>
+</AutomatedInstallation>

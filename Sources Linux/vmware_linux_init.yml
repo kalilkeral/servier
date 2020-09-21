@@ -1,0 +1,7 @@
+---
+- name: 
+  hosts: all
+  gather_facts: True
+  roles:
+  - role: linux_initialization
+    become: yes

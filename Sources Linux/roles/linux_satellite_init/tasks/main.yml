@@ -1,0 +1,169 @@
+---
+# tasks file for linux_ctlm_install
+
+- name: Add Host to Cache Inventory
+  add_host:
+    hostname: '{{ vm_name }}'
+    ansible_host: '{{ vm_ip }}'
+    groups: just_created
+  no_log: true
+
+#- name: Var initialization
+#  include_vars:
+#    file: '{{ item }}.yml'
+#  with_items: 
+#    - '{{ vm_env }}'
+#    - '{{ vm_subnet }}'
+
+###########################################################
+#         Initialize Activation Key Variables             #
+###########################################################
+
+- name: Init Activation Key variable
+  set_fact:
+    satellite_activation_key: '{{ activation_key[(vm_env | string)] }}'
+
+###########################################################
+#       Initialize Capsule Satellite Variables            #
+###########################################################
+
+- name: Init Satellite Capsule variable
+  set_fact:
+    satellite_capsule_server: '{{ capsule_satellite[(vm_subnet | string)] }}'
+
+###########################################################
+#       Initialize Puppet Environment Variables           #
+###########################################################
+
+- name: Init Puppet Environment variable
+  set_fact:
+    satellite_puppet_environment: '{{ puppet_environment[(vm_env | string)] }}'
+
+
+- name: Gather Facts
+  gather_facts: 
+  delegate_to: '{{ vm_name }}'
+
+
+- debug: 
+    var: satellite_activation_key
+
+- debug:
+    var: satellite_puppet_environment
+
+- debug:
+    var: satellite_capsule_server
+
+- name: Initialize Satellite Subscription
+  block:
+
+  - name: Clean yum directory
+    file:
+      path: /etc/yum.repos.d/dvd.repo
+      state: absent
+
+  - name: Create Temp Install Directory
+    file:
+      path: /tmp/satellite
+      state: directory
+
+  - name: Download Katello Consumer CA Package from Capsule
+    get_url: 
+      url: https://{{ satellite_capsule_server }}/pub/katello-ca-consumer-{{ satellite_capsule_server }}-1.0-1.noarch.rpm
+      validate_certs: no
+      dest: /tmp/satellite
+
+  - name: Install Katello CA Consumer from the Capsule
+    yum:
+      name: /tmp/satellite/katello-ca-consumer-{{ satellite_capsule_server }}-1.0-1.noarch.rpm
+      state: present 
+
+  - name: Enable Subscription to the Capsule
+    redhat_subscription:
+      activationkey: "{{ satellite_activation_key }}"
+      org_id: servier
+      state: present
+    register: satellite_reg
+    ignore_errors: yes
+
+  - name: Attach RedHat subscription
+    command: subscription-manager attach --pool={{ item }}
+    with_items:
+      - 8a7a9de567ef8e0c016b6aa5f033468c
+      - 8a7a9de5566fe3460156d6d0c8bd1d19
+      - 8a7a9de5566fe3460156d5e237931926
+      - 8a7a9de55aa914e6015af66594a75f65
+      - 8a7a9de5566fe3460156759de0600297
+    ignore_errors: yes
+    when: ansible_distribution == 'RedHat'
+
+  - name: Attach CentOS subscription
+    command: subscription-manager attach --pool={{ item}}
+    with_items:
+      - 8a7a9de5566fe3460156759de0600297
+      - 8a7a9de55843aea5015867d8c12e2f32
+      - 8a7a9de5566fe346015741f02f3954ed
+      - 8a7a9de5566fe3460156d5e237931926
+      - 8a7a9de55843aea5015867dba6f42f39
+    ignore_errors: yes
+    when: ansible_distribution == 'CentOS'
+
+  - name: yum clean metadata
+    command: yum clean metadata
+    args:
+      warn: no
+ 
+  - name: Install Katello Agent
+    yum:
+      name: katello-agent
+      state: latest
+
+  - name: Delete Temp Directory File
+    file:
+      path: /tmp/satellite/
+      state: absent
+
+  delegate_to: '{{ vm_name }}'
+
+- name: Initialize Puppet Configuration
+  block:
+  - name: Install Puppet Package
+    yum:
+      name: puppet
+      state: present
+
+  - name: Copy puppet config file
+    template:
+      src: puppetconf.j2
+      dest: /etc/puppet/puppet.conf
+      mode: '0644'
+      owner: root
+      group: root
+
+  - name: Start Puppet Configuration Management on Server
+    command: puppet agent -t -w 120
+    register: puppet_init
+    ignore_errors: yes
+
+  - name: Temporize
+    pause:
+      minutes: 1
+
+  - name: Check all puppet configuration changes are made
+    command: puppet agent -t -w 120
+    register: puppet_check
+    until: puppet_check.rc == 0
+    retries: 5
+    delay: 60
+
+  - name: Temporize
+    pause:
+      minutes: 1
+ 
+  - name: Restart SSSD Process
+    systemd:
+      state: restarted
+      name: sssd
+
+  delegate_to: '{{ vm_name }}'
+

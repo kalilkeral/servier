@@ -1,0 +1,9 @@
+---
+# vars file for linux_flexnet_install
+# mgssetup_LAN.sh
+
+install_directory: '/var/tmp'
+
+flexnet_file:
+    "LAN": "mgssetup_LAN.sh"
+    "DMZ": "mgssetup_DMZ.sh"

@@ -1,0 +1,14 @@
+---
+# vars file for linux_ctlm_install
+#
+install_directory: '/opt/controlm'
+
+ctlm_file:
+    "TST": 'config_Recette_EMSW0941.xml'
+    "DEV": 'config_Recette_EMSW0941.xml'
+    "VAL": 'config_Prod_EMSW0654.xml'
+    "PRD": 'config_Prod_EMSW0654.xml'
+
+reposerver:
+    "LAN": 'repolan'
+    "DMZ": 'repodmz'

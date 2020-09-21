@@ -1,0 +1,58 @@
+---
+# tasks file for linux_ctlm_install
+
+- name: Add Host to Cache Inventory
+  add_host:
+    hostname: '{{ vm_name }}'
+    ansible_host: '{{ vm_ip }}'
+    groups: just_created
+  no_log: true
+
+###########################################################
+#        Initialize ControlM Config  Variables            #
+###########################################################
+
+- name: Init Controlm Config File
+  set_fact:
+        mgssetup_file: '{{ flexnet_file[(vm_subnet| string)] }}'
+
+- name: Check FlexNet is not installed
+  package_facts: 
+    manager: rpm
+  delegate_to: '{{ vm_name }}'
+
+- name: Install and configure FlexNet
+  block:
+  - ping:
+
+  - name: Upload FlexNet Binary
+    copy: 
+      src: ./files/managesoft-13.0.0-1.x86_64.rpm
+      dest: '{{ install_directory }}'
+
+  - name: Upload FlexNet Script depending LAN or DMZ Network
+    copy:
+      src: ./files/{{ mgssetup_file }}
+      dest: '{{ install_directory }}/mgssetup.sh'
+      mode: 0770
+
+  - name: Execute install of FlexNet Agent
+    command: '{{ install_directory }}/mgssetup.sh'
+
+  - name: Delete flexnet Script and Package
+    file:
+      path: '{{ install_directory }}/{{ item }}'
+      state: absent
+    with_items:
+      - managesoft-13.0.0-1.x86_64.rpm
+      - mgssetup.sh
+
+  - name: Check FlexNet Connectivity with Master
+    command: /opt/managesoft/bin/ndschedag -e
+    register: flexnet_install
+    until: "'Update Machine Policy' in flexnet_install.stdout"
+    retries: 20
+    delay: 30
+
+  delegate_to: '{{ vm_name }}'
+  when: "'managesoft' not in ansible_facts.packages" 
