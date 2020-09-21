@@ -1,0 +1,6 @@
+---
+- name: 
+  hosts: all
+  gather_facts: False
+  roles:
+  - role: linux_flexnet_install
