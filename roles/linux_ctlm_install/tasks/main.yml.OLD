@@ -1,0 +1,52 @@
+---
+# tasks file for ctlm_install
+# Playbook to install Controlm on a Windows Server
+
+- name: Ajout de l'host à l'inventaire
+  add_host:
+    hostname: '{{ vm_name }}'
+    ansible_host: '{{ vm_ip }}'
+    ansible_user: "{{ lookup('env','LOCAL_ADMIN_USERNAME') }}"
+    ansible_password: "{{ lookup('env','LOCAL_ADMIN_PASSWORD') }}"
+    ansible_connection: winrm
+    ansible_winrm_port: 5986
+    ansible_winrm_transport: ntlm
+    ansible_winrm_server_cert_validation: ignore
+    groups: just_created
+  no_log: true
+
+- name: Transfer, unzip and Install ControlM
+  block:
+  - name: ping
+    win_ping:
+
+  - name: Create Temp Directory File
+    win_file:
+      path: D:\TEMP_INSTALL
+      state: directory
+
+  - name: Unzip sources
+    win_unzip:
+      src: "\\\\cbsw119\\ctech$\\CDS\\Sources\\Sources.zip"
+      dest: D:\TEMP_INSTALL\
+      #remote_src: yes
+    become: yes
+    become_method: runas
+    become_flags: logon_type=new_credentials logon_flags=netcredentials_only
+    vars:
+      ansible_become_user: "{{ lookup('env','LOCAL_ADMIN_USERNAME') }}"
+      ansible_become_pass: "{{ lookup('env','LOCAL_ADMIN_PASSWORD') }}"
+
+  - name: Execute install
+    win_command: Setup.exe -silent "{{ ctrlm_config_file }}"
+    args:
+      chdir: D:\TEMP_INSTALL\
+    register: ctlm_instal
+
+  - name: Delete Temp Directory File
+    win_file:
+      path: D:\TEMP_INSTALL
+      state: absent
+
+  delegate_to: '{{ vm_name }}'
+  when: vm_install_ctrlM == 'Yes'

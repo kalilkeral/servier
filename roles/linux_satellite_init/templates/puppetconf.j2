@@ -1,0 +1,15 @@
+[main]
+        logdir = /var/log/puppet
+        rundir = /var/run/puppet
+        ssldir = $vardir/ssl
+        stringify_facts = false
+[agent]
+        classfile = $vardir/classes.txt
+        localconfig = $vardir/localconfig
+        server = {{ satellite_capsule_server }}
+        report = true
+        environment = {{ satellite_puppet_environment }} 
+        runinterval = 30m
+        pluginsync = true
+        disable_warnings = deprecations
+        configtimeout = 5m

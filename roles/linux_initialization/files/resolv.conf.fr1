@@ -1,0 +1,6 @@
+###################################################
+#  Fichier manage par Ansible Tower
+###################################################
+search fr1.grs.net dmz.grs.net part.grs.net int.grs.net p12.grs.net grs.net
+nameserver 10.32.16.28
+nameserver 10.48.16.30

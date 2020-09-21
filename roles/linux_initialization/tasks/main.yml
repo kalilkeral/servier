@@ -1,0 +1,66 @@
+---
+# tasks file for linux_initialization
+
+- name: Add Host to Cache Inventory
+  add_host:
+    hostname: '{{ vm_name }}'
+    ansible_host: '{{ vm_ip }}'
+    #ansible_user: 
+    #ansible_password: "{{ lookup('env','LOCAL_ADMIN_PASSWORD') }}"
+    #ansible_connection: ssh
+    groups: just_created
+  no_log: true
+
+#- name: Delete IP on Known Host to avoid problems when Ip is reused
+#  known_hosts:
+#    hostname: '{{ vm_ip }}'
+#    state: absent
+#  become: yes
+
+- name: Transfer, unzip and Install McAfee
+  block:
+  - name: Add FQDN to server hostname
+    hostname:
+      name: "{{ vm_name | lower }}.{{ vm_joindomain }}"
+
+  - name: Correct bug of DNS Suffix
+    copy:
+      src: ./files/resolv.conf.fr1
+      dest: /etc/resolv.conf
+      force: yes
+
+  - name: Adding ansible group
+    group:
+      name: ansible
+      gid: 1052
+      state: present
+
+  - name: Adding ansible user
+    user:
+      name: ansible
+      comment: User for Ansible Tower Automation
+      uid: 1052
+      group: ansible
+      shell: /bin/bash
+      state: present
+
+  - name: Populate Authorized Key with Ansible Public Key
+    authorized_key:
+      user: ansible
+      state: present
+      manage_dir: True
+      key: "{{ lookup('file', './files/ansible_key_legacy.pub') }}"
+
+  - name: Add Ansible to the sudoers list
+    lineinfile:
+      dest: /etc/sudoers.d/00-ansible
+      line: 'ansible ALL=(ALL) NOPASSWD: ALL'
+      create: yes
+      owner: root
+      group: root
+      mode: "0440"
+      state: present
+      validate: 'visudo -c -f %s'
+      
+  delegate_to: '{{ vm_name }}'
+
