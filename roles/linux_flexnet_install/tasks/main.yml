@@ -27,7 +27,7 @@
 
 - name: Install and configure FlexNet
   block:
-  - ping:
+  #- ping:
 
   - name: Upload FlexNet Binary
     copy: 
