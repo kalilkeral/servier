@@ -53,12 +53,12 @@
       - managesoft-13.0.0-1.x86_64.rpm
       - mgssetup.sh
 
-  - name: Check FlexNet Connectivity with Master
-    command: /opt/managesoft/bin/ndschedag -e
-    register: flexnet_install
-    until: "'Update Machine Policy' in flexnet_install.stdout"
-    retries: 20
-    delay: 30
+  #- name: Check FlexNet Connectivity with Master
+    #command: /opt/managesoft/bin/ndschedag -e
+    #register: flexnet_install
+    #until: "'Update Machine Policy' in flexnet_install.stdout"
+    #retries: 20
+    #delay: 30
 
   #delegate_to: '{{ vm_name }}'
   delegate_to: POCSERVIER1
