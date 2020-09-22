@@ -2,6 +2,6 @@
 - name: 
   hosts: "{{ variable_host | default('localhost') }}"
   gather_facts: False
-  no_log: yes
+  no_log: true
   roles:
   - role: linux_flexnet_install
