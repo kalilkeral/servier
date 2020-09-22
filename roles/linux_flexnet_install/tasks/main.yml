@@ -6,7 +6,7 @@
     hostname: '{{ vm_name }}'
     ansible_host: '{{ vm_ip }}'
     groups: just_created
-  no_log: true
+  #no_log: true
 
 ###########################################################
 #        Initialize ControlM Config  Variables            #
