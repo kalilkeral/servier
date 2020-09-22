@@ -8,6 +8,7 @@
     #ansible_host: '{{ vm_ip }}'
     ansible_host: 51.103.68.155
     groups: just_created
+    always_run: True
   #no_log: true
 
 ###########################################################
