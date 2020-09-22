@@ -3,7 +3,8 @@
 
 - name: Add Host to Cache Inventory
   add_host:
-    hostname: '{{ vm_name }}'
+    #hostname: '{{ vm_name }}'
+    hostname: POCSERVIER1
     ansible_host: '{{ vm_ip }}'
     groups: just_created
   #no_log: true
@@ -19,7 +20,8 @@
 - name: Check FlexNet is not installed
   package_facts: 
     manager: rpm
-  delegate_to: '{{ vm_name }}'
+  #delegate_to: '{{ vm_name }}'
+  delegate_to: POCSERVIER1
 
 - name: Install and configure FlexNet
   block:
@@ -54,5 +56,6 @@
     retries: 20
     delay: 30
 
-  delegate_to: '{{ vm_name }}'
+  #delegate_to: '{{ vm_name }}'
+  delegate_to: POCSERVIER1
   when: "'managesoft' not in ansible_facts.packages" 
