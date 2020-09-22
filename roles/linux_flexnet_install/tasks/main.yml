@@ -17,7 +17,7 @@
 
 - name: Init Controlm Config File
   set_fact:
-        mgssetup_file: '{{ flexnet_file[(vm_subnet| string)] }}'
+        mgssetup_file: '{{ flexnet_file[(10.0.0.0| string)] }}'
         #mgssetup_file: '{{ flexnet_file[(10.0.0.5| string)] }}'
 
 - name: Check FlexNet is not installed
