@@ -45,13 +45,13 @@
   - name: Execute install of FlexNet Agent
     command: '{{ install_directory }}/mgssetup.sh'
 
-  - name: Delete flexnet Script and Package
-    file:
-      path: '{{ install_directory }}/{{ item }}'
-      state: absent
-    with_items:
-      - managesoft-13.0.0-1.x86_64.rpm
-      - mgssetup.sh
+  #- name: Delete flexnet Script and Package
+    #file:
+      #path: '{{ install_directory }}/{{ item }}'
+      #state: absent
+    #with_items:
+      #- managesoft-13.0.0-1.x86_64.rpm
+      #- mgssetup.sh
 
   #- name: Check FlexNet Connectivity with Master
     #command: /opt/managesoft/bin/ndschedag -e
