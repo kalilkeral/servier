@@ -22,7 +22,7 @@
 
 - name: Check FlexNet is not installed
   package_facts: 
-    manager: rpm
+    manager: auto
   #delegate_to: '{{ vm_name }}'
   delegate_to: POCSERVIER1
 
