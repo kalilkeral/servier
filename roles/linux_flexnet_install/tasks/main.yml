@@ -6,7 +6,7 @@
     #hostname: '{{ vm_name }}'
     hostname: POCSERVIER1
     #ansible_host: '{{ vm_ip }}'
-    ansible_host: 51.103.25.72
+    ansible_host: 51.103.68.155
     groups: just_created
   #no_log: true
 
